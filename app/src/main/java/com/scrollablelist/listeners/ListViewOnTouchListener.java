@@ -17,19 +17,15 @@ import com.scrollablelist.UtilHelper;
 
 public class ListViewOnTouchListener implements View.OnTouchListener {
 
-  static float height;
-  static float heightDiff;
-  boolean isExpanded = false;
-  boolean isScrollDragging = false;
+  private static float heightList;
+  private static float heightDiff;
+  private boolean isExpanded = false;
+  private float mLastTouchY;
+  private float mPosY;
+  private int actionBarHeight;
 
-  float mLastTouchY;
-  float mPosY;
-
-  int actionBarHeight;
-  int statusBarHeight;
-
-  ListView listView;
-  RelativeLayout rootLayout;
+  private ListView listView;
+  private RelativeLayout rootLayout;
 
   public ListViewOnTouchListener(ListView listView, RelativeLayout rootLayout, Context context, Activity activity) {
     this.listView = listView;
@@ -37,9 +33,9 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
     listView.setOnTouchListener(this);
 
     actionBarHeight = UtilHelper.getActionlbarHeight(context);
-    statusBarHeight = UtilHelper.getStatusbarheight(context);
-    height = UtilHelper.convertDpToPixel(200, context);
-    heightDiff = (UtilHelper.getScreenHeight(activity) - height) - this.actionBarHeight;
+    heightList = UtilHelper.convertDpToPixel(200, context);
+    // heightDiff [px] - Height of remaining part of screen without list height and actionbar height [px]
+    heightDiff = (UtilHelper.getScreenHeight(activity) - heightList) - this.actionBarHeight;
   }
 
   @Override
@@ -58,21 +54,21 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
 
         mPosY = (y - mLastTouchY);
 
-          if (isExpanded && mPosY < heightDiff) {
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            );
-            params.setMargins(0, (int) mPosY, 0, 0); //left,top,right,bottom
-            listView.setLayoutParams(params);
-          } else if (!isExpanded && y < heightDiff) {
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            );
-            params.setMargins(0, (int) (heightDiff + mPosY), 0, 0); //left,top,right,bottom
-            listView.setLayoutParams(params);
-          }
+        if (isExpanded && mPosY < heightDiff) {
+          RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+              ViewGroup.LayoutParams.MATCH_PARENT,
+              ViewGroup.LayoutParams.MATCH_PARENT
+          );
+          params.setMargins(0, (int) mPosY, 0, 0); //left,top,right,bottom
+          listView.setLayoutParams(params);
+        } else if (!isExpanded && y < heightDiff) {
+          RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+              ViewGroup.LayoutParams.MATCH_PARENT,
+              ViewGroup.LayoutParams.MATCH_PARENT
+          );
+          params.setMargins(0, (int) (heightDiff + mPosY), 0, 0); //left,top,right,bottom
+          listView.setLayoutParams(params);
+        }
 
         break;
       }
@@ -80,18 +76,24 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
       case MotionEvent.ACTION_UP: {
 
         if (isExpanded && mPosY > 100) {
-          UtilHelper.collapse(listView, (int) mPosY, (int) height);
+          UtilHelper.collapse(listView, (int) mPosY, (int) heightList);
           this.isExpanded = false;
         } else if (!isExpanded && mPosY < -100) {
           UtilHelper.expand(listView, (int) (heightDiff + mPosY));
           this.isExpanded = true;
           listView.setOnTouchListener(null);
-          isScrollDragging = false;
         } else {
-          if (isExpanded) {
-            UtilHelper.expand(listView, (int) mPosY);
-          } else if (!isExpanded) {
-            UtilHelper.collapse(listView, (int) (heightDiff + mPosY), (int) height);
+          if (mLastTouchY > heightDiff) {
+            UtilHelper.collapse(listView, (int) (heightList), (int) heightList);
+            isExpanded = false;
+          } else {
+            if (isExpanded) {
+              UtilHelper.expand(listView, (int) mPosY);
+              listView.setOnTouchListener(null);
+            } else {
+              UtilHelper.collapse(listView, (int) (heightDiff + mPosY), (int) heightList);
+              this.isExpanded = false;
+            }
           }
         }
         mLastTouchY = y;

@@ -10,10 +10,12 @@ import android.widget.ListView;
 
 public class ListViewScrollListener implements AbsListView.OnScrollListener {
 
-  ListView listView;
-  int mLastFirstVisibleItem;
-  boolean isScrollingUp = false;
-  View.OnTouchListener touchListener;
+  private ListView listView;
+  private int mLastFirstVisibleItem;
+  private boolean isScrollingUp = false;
+  private View.OnTouchListener touchListener;
+
+  // Set List Item Header TODO
 
   public ListViewScrollListener(ListView listView, View.OnTouchListener touchListener) {
     this.listView = listView;
