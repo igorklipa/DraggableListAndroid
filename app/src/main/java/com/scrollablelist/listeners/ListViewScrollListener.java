@@ -1,52 +1,44 @@
 package com.scrollablelist.listeners;
 
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.AbsListView;
-import android.widget.ListView;
 
 /**
  * Created by igor on 6/21/17.
  */
 
-public class ListViewScrollListener implements AbsListView.OnScrollListener {
+public class ListViewScrollListener extends RecyclerView.OnScrollListener {
 
-  private ListView listView;
-  private int mLastFirstVisibleItem;
+  private RecyclerView listView;
   private boolean isScrollingUp = false;
   private View.OnTouchListener touchListener;
 
-  // Set List Item Header TODO
 
-  public ListViewScrollListener(ListView listView, View.OnTouchListener touchListener) {
+  public ListViewScrollListener(RecyclerView listView, View.OnTouchListener touchListener) {
     this.listView = listView;
+    listView.addOnScrollListener(this);
     this.touchListener = touchListener;
-    listView.setOnScrollListener(this);
-
-    mLastFirstVisibleItem = -1;
   }
 
   @Override
-  public void onScrollStateChanged(AbsListView view, int scrollState) {
-    final int currentFirstVisibleItem = listView.getFirstVisiblePosition();
-    if (currentFirstVisibleItem > mLastFirstVisibleItem) {
+  public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+    super.onScrolled(recyclerView, dx, dy);
+
+    if(dy>0) {
       isScrollingUp = false;
-    } else if (currentFirstVisibleItem <= mLastFirstVisibleItem) {
+      listView.setOnTouchListener(null);
+    } else  {
       isScrollingUp = true;
     }
-    mLastFirstVisibleItem = currentFirstVisibleItem;
   }
 
   @Override
-  public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-    if (firstVisibleItem == 0 && isScrollingUp) {
-      View v = listView.getChildAt(0);
-      int offset = (v == null) ? 0 : v.getTop();
-      if (offset == 0) {
-        listView.setOnTouchListener(touchListener);
-        isScrollingUp = false;
-        return;
-      }
+  public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+    super.onScrollStateChanged(recyclerView, newState);
+    if(recyclerView.getLayoutManager().getChildAt(0).getTop() == 0 && isScrollingUp) {
+      listView.setOnTouchListener(touchListener);
+      isScrollingUp = false;
+      return;
     }
   }
-
 }

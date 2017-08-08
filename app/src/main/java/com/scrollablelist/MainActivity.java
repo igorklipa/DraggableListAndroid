@@ -2,7 +2,9 @@ package com.scrollablelist;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.ListView;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.widget.RelativeLayout;
 
 import com.scrollablelist.listeners.ListViewOnTouchListener;
@@ -15,11 +17,11 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 
-
   @BindView(R.id.listView)
-  ListView listView;
-
+  RecyclerView listView;
   RelativeLayout rootLayout;
+  ArrayList<Item> list = new ArrayList<>();
+  ListAdapter listAdapter;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -27,27 +29,30 @@ public class MainActivity extends AppCompatActivity {
     setContentView(R.layout.activity_main);
     ButterKnife.bind(this);
     rootLayout = (RelativeLayout) findViewById(R.id.activity_main);
-    populateList();
+    listAdapter = new ListAdapter(this.list, getApplicationContext());
+    initList();
   }
 
-  public void populateList() {
-    ArrayList<Item> list = new ArrayList<Item>();
-    list.add(new Item("1"));
-    list.add(new Item("2"));
-    list.add(new Item("3"));
-    list.add(new Item("4"));
-    list.add(new Item("5"));
-    list.add(new Item("6"));
-    list.add(new Item("7"));
-    list.add(new Item("8"));
-    list.add(new Item("9"));
-    list.add(new Item("10"));
-    list.add(new Item("11"));
-    list.add(new Item("12"));
+  public void initList() {
+    LinearLayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+    DividerItemDecoration mDividerItemDecoration = new DividerItemDecoration(listView.getContext(),
+        mLayoutManager.getOrientation());
+    listView.setLayoutManager(mLayoutManager);
+    listView.addItemDecoration(mDividerItemDecoration);
+    listView.setAdapter(listAdapter);
 
-    listView.setAdapter(new com.scrollablelist.ListAdapter(MainActivity.this, R.layout.single_item, list));
+    populateList();
 
     ListViewOnTouchListener touchListener = new ListViewOnTouchListener(listView, rootLayout, getApplicationContext(), this);
     ListViewScrollListener scrollListener = new ListViewScrollListener(listView, touchListener);
+  }
+
+  public void populateList() {
+    // Just example list
+    for(int i = 0; i < 15; i++) {
+      list.add(new Item(i + ".", "Desc for " + i));
+    }
+
+    listAdapter.notifyDataSetChanged();
   }
 }

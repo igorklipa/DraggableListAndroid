@@ -3,10 +3,10 @@ package com.scrollablelist.listeners;
 import android.app.Activity;
 import android.content.Context;
 import android.support.v4.view.MotionEventCompat;
+import android.support.v7.widget.RecyclerView;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 
 import com.scrollablelist.UtilHelper;
@@ -24,13 +24,17 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
   private float mPosY;
   private int actionBarHeight;
 
-  private ListView listView;
+  private RecyclerView listView;
   private RelativeLayout rootLayout;
 
-  public ListViewOnTouchListener(ListView listView, RelativeLayout rootLayout, Context context, Activity activity) {
+  ListViewOnTouchListener thisListener;
+
+  public ListViewOnTouchListener(RecyclerView listView, RelativeLayout rootLayout, Context context, Activity activity) {
     this.listView = listView;
     this.rootLayout = rootLayout;
-    listView.setOnTouchListener(this);
+    isExpanded = false;
+    thisListener = this;
+    listView.setOnTouchListener(thisListener);
 
     actionBarHeight = UtilHelper.getActionlbarHeight(context);
     heightList = UtilHelper.convertDpToPixel(200, context);
@@ -82,6 +86,7 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
           UtilHelper.expand(listView, (int) (heightDiff + mPosY));
           this.isExpanded = true;
           listView.setOnTouchListener(null);
+          touchListenerOnExtendedList();
         } else {
           if (mLastTouchY > heightDiff) {
             UtilHelper.collapse(listView, (int) (heightList), (int) heightList);
@@ -90,6 +95,7 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
             if (isExpanded) {
               UtilHelper.expand(listView, (int) mPosY);
               listView.setOnTouchListener(null);
+              touchListenerOnExtendedList();
             } else {
               UtilHelper.collapse(listView, (int) (heightDiff + mPosY), (int) heightList);
               this.isExpanded = false;
@@ -108,6 +114,60 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
     }
     rootLayout.invalidate();
     return true;
+  }
+
+  public void touchListenerOnExtendedList() {
+    listView.setOnTouchListener(new View.OnTouchListener() {
+      float lastTouchY;
+      float posY;
+
+      @Override
+      public boolean onTouch(View v, MotionEvent ev) {
+        final int action = MotionEventCompat.getActionMasked(ev);
+        float y = ev.getRawY();
+
+        switch (action) {
+          case MotionEvent.ACTION_DOWN: {
+            lastTouchY = y;
+            break;
+          }
+
+          case MotionEvent.ACTION_MOVE: {
+
+            posY = (y - lastTouchY);
+
+            if(posY < 0) {
+              listView.setOnTouchListener(null);
+              return false;
+            } else {
+              RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                  ViewGroup.LayoutParams.MATCH_PARENT,
+                  ViewGroup.LayoutParams.MATCH_PARENT
+              );
+              params.setMargins(0, (int) posY, 0, 0); //left,top,right,bottom
+              listView.setLayoutParams(params);
+            }
+
+            break;
+          }
+
+          case MotionEvent.ACTION_UP: {
+            if (posY > 0) {
+              UtilHelper.collapse(listView, (int) posY, (int) heightList);
+              isExpanded = false;
+              listView.setOnTouchListener(thisListener);
+            } else {
+              UtilHelper.expand(listView, (int) posY);
+              isExpanded = true;
+              listView.setOnTouchListener(null);
+            }
+            break;
+          }
+        }
+        rootLayout.invalidate();
+        return true;
+      }
+    });
   }
 
 }
