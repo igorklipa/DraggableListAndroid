@@ -49,10 +49,9 @@ public class MainActivity extends AppCompatActivity {
 
   public void populateList() {
     // Just example list
-    for(int i = 0; i < 15; i++) {
+    for (int i = 0; i < 15; i++) {
       list.add(new Item(i + ".", "Desc for " + i));
     }
-
     listAdapter.notifyDataSetChanged();
   }
 }

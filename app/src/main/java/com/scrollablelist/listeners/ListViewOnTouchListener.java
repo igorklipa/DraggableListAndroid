@@ -17,6 +17,7 @@ import com.scrollablelist.UtilHelper;
 
 public class ListViewOnTouchListener implements View.OnTouchListener {
 
+  public static final float MARGIN_HEIGHT_VALUE = 200; //marginTop value which will be used in expanding and collapsing the view
   private static float heightList;
   private static float heightDiff;
   private boolean isExpanded = false;
@@ -27,7 +28,8 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
   private RecyclerView listView;
   private RelativeLayout rootLayout;
 
-  ListViewOnTouchListener thisListener;
+  private ListViewOnTouchListener thisListener;
+  public View.OnTouchListener extendedHelperListener;
 
   public ListViewOnTouchListener(RecyclerView listView, RelativeLayout rootLayout, Context context, Activity activity) {
     this.listView = listView;
@@ -37,14 +39,14 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
     listView.setOnTouchListener(thisListener);
 
     actionBarHeight = UtilHelper.getActionlbarHeight(context);
-    heightList = UtilHelper.convertDpToPixel(200, context);
+    heightList = UtilHelper.convertDpToPixel(MARGIN_HEIGHT_VALUE, context);
     // heightDiff [px] - Height of remaining part of screen without list height and actionbar height [px]
     heightDiff = (UtilHelper.getScreenHeight(activity) - heightList) - this.actionBarHeight;
+    initHelperListener();
   }
 
   @Override
   public boolean onTouch(View v, MotionEvent ev) {
-
     final int action = MotionEventCompat.getActionMasked(ev);
     float y = ev.getRawY();
 
@@ -73,12 +75,10 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
           params.setMargins(0, (int) (heightDiff + mPosY), 0, 0); //left,top,right,bottom
           listView.setLayoutParams(params);
         }
-
         break;
       }
 
       case MotionEvent.ACTION_UP: {
-
         if (isExpanded && mPosY > 100) {
           UtilHelper.collapse(listView, (int) mPosY, (int) heightList);
           this.isExpanded = false;
@@ -86,7 +86,7 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
           UtilHelper.expand(listView, (int) (heightDiff + mPosY));
           this.isExpanded = true;
           listView.setOnTouchListener(null);
-          touchListenerOnExtendedList();
+          switchToHelperListener();
         } else {
           if (mLastTouchY > heightDiff) {
             UtilHelper.collapse(listView, (int) (heightList), (int) heightList);
@@ -95,7 +95,7 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
             if (isExpanded) {
               UtilHelper.expand(listView, (int) mPosY);
               listView.setOnTouchListener(null);
-              touchListenerOnExtendedList();
+              switchToHelperListener();
             } else {
               UtilHelper.collapse(listView, (int) (heightDiff + mPosY), (int) heightList);
               this.isExpanded = false;
@@ -103,7 +103,6 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
           }
         }
         mLastTouchY = y;
-
         break;
       }
 
@@ -116,8 +115,13 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
     return true;
   }
 
-  public void touchListenerOnExtendedList() {
-    listView.setOnTouchListener(new View.OnTouchListener() {
+  public void switchToHelperListener() {
+    listView.setOnTouchListener(extendedHelperListener);
+  }
+
+  // This touch listener will be used when the list is expanded
+  public void initHelperListener() {
+    extendedHelperListener = new View.OnTouchListener() {
       float lastTouchY;
       float posY;
 
@@ -136,7 +140,7 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
 
             posY = (y - lastTouchY);
 
-            if(posY < 0) {
+            if (posY < 0) {
               listView.setOnTouchListener(null);
               return false;
             } else {
@@ -147,7 +151,6 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
               params.setMargins(0, (int) posY, 0, 0); //left,top,right,bottom
               listView.setLayoutParams(params);
             }
-
             break;
           }
 
@@ -167,7 +170,7 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
         rootLayout.invalidate();
         return true;
       }
-    });
+    };
   }
 
 }
