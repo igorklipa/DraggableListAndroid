@@ -19,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
 
   @BindView(R.id.listView)
   RecyclerView listView;
+  @BindView(R.id.activity_main)
   RelativeLayout rootLayout;
   ArrayList<Item> list = new ArrayList<>();
   ListAdapter listAdapter;
@@ -28,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     ButterKnife.bind(this);
-    rootLayout = (RelativeLayout) findViewById(R.id.activity_main);
     listAdapter = new ListAdapter(this.list, getApplicationContext());
     initList();
   }

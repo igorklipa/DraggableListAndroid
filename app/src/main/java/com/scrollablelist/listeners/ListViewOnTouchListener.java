@@ -20,10 +20,13 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
   public static final float MARGIN_HEIGHT_VALUE = 200; //marginTop value which will be used in expanding and collapsing the view
   private static float heightList;
   private static float heightDiff;
+  private static float heightDiffRaw;
   private boolean isExpanded = false;
   private float mLastTouchY;
   private float mPosY;
   private int actionBarHeight;
+  private int statusBarHeight;
+  private int navigationBarHeight;
 
   private RecyclerView listView;
   private RelativeLayout rootLayout;
@@ -38,10 +41,14 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
     thisListener = this;
     listView.setOnTouchListener(thisListener);
 
+    statusBarHeight = UtilHelper.getStatusbarheight(context);
     actionBarHeight = UtilHelper.getActionlbarHeight(context);
+    navigationBarHeight = UtilHelper.getNavigationbarHeight(context);
     heightList = UtilHelper.convertDpToPixel(MARGIN_HEIGHT_VALUE, context);
     // heightDiff [px] - Height of remaining part of screen without list height and actionbar height [px]
     heightDiff = (UtilHelper.getScreenHeight(activity) - heightList) - this.actionBarHeight;
+    heightDiffRaw = (UtilHelper.getScreenHeight(activity) - heightList) - actionBarHeight - statusBarHeight - navigationBarHeight;
+
     initHelperListener();
   }
 
@@ -67,12 +74,12 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
           );
           params.setMargins(0, (int) mPosY, 0, 0); //left,top,right,bottom
           listView.setLayoutParams(params);
-        } else if (!isExpanded && y < heightDiff) {
+        } else if (!isExpanded && y < heightDiffRaw) {
           RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
               ViewGroup.LayoutParams.MATCH_PARENT,
               ViewGroup.LayoutParams.MATCH_PARENT
           );
-          params.setMargins(0, (int) (heightDiff + mPosY), 0, 0); //left,top,right,bottom
+          params.setMargins(0, (int) (y - actionBarHeight - statusBarHeight), 0, 0); //left,top,right,bottom
           listView.setLayoutParams(params);
         }
         break;
@@ -83,7 +90,7 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
           UtilHelper.collapse(listView, (int) mPosY, (int) heightList);
           this.isExpanded = false;
         } else if (!isExpanded && mPosY < -100) {
-          UtilHelper.expand(listView, (int) (heightDiff + mPosY));
+          UtilHelper.expand(listView, (int) (y - actionBarHeight - statusBarHeight));
           this.isExpanded = true;
           listView.setOnTouchListener(null);
           switchToHelperListener();
@@ -97,7 +104,7 @@ public class ListViewOnTouchListener implements View.OnTouchListener {
               listView.setOnTouchListener(null);
               switchToHelperListener();
             } else {
-              UtilHelper.collapse(listView, (int) (heightDiff + mPosY), (int) heightList);
+              UtilHelper.collapse(listView, (int) (y - actionBarHeight - statusBarHeight), (int) heightList);
               this.isExpanded = false;
             }
           }

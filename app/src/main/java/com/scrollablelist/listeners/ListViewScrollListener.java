@@ -11,7 +11,6 @@ public class ListViewScrollListener extends RecyclerView.OnScrollListener {
   private RecyclerView listView;
   private boolean isScrollingUp = false;
   private ListViewOnTouchListener touchListener;
-  private int mDy = 0;
 
   public ListViewScrollListener(RecyclerView listView, ListViewOnTouchListener touchListener) {
     this.listView = listView;

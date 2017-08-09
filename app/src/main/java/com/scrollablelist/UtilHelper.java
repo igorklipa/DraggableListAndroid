@@ -39,6 +39,7 @@ public class UtilHelper {
     Point size = new Point();
     display.getSize(size);
     float height = size.y;
+    // [px]
     return height;
   }
 
@@ -51,8 +52,7 @@ public class UtilHelper {
     } else {
       actionBarHeight = 0;
     }
-
-    return actionBarHeight;
+    return actionBarHeight;  // [px]
   }
 
   public static int getStatusbarheight(Context context) {
@@ -63,8 +63,18 @@ public class UtilHelper {
     } else {
       statusBarHeight = 0;
     }
+    return statusBarHeight; // [px]
+  }
 
-    return statusBarHeight;
+  public static int getNavigationbarHeight(Context context) {
+    // To get if device have navigation bar
+    int id = context.getResources().getIdentifier("config_showNavigationBar", "bool", "android");
+    Resources resources = context.getResources();
+    int resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
+    if (resourceId > 0 && id > 0 && resources.getBoolean(id)) {
+      return resources.getDimensionPixelSize(resourceId); // [px]
+    }
+    return 0;
   }
 
   public static void expand(final View v, int lastTouchY) {
